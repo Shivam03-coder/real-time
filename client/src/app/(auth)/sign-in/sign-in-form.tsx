@@ -13,11 +13,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
 import { type SignInSchemaType, signinSchema } from "@/schema/auth-schema";
-import { useTransitionRouter } from "next-view-transitions";
-import { useAppToasts } from "@/hooks/use-app-toast";
-import MainLink from "@/components/global/main-link";
-import Spinner from "@/components/global/spinner";
+import { Link, useTransitionRouter } from "next-view-transitions";
 import { useSignInMutation } from "@/apis/auth-api";
+import { useAppToasts } from "@/hooks/use-app-toast";
 import { useLocalStorage } from "usehooks-ts";
 
 export default function SignInForm() {
@@ -41,7 +39,7 @@ export default function SignInForm() {
         title: message,
       });
       form.reset();
-      router.push("/shop");
+      router.push("/");
 
       console.log("PUSH FAILED");
     } catch (err: any) {
@@ -99,16 +97,17 @@ export default function SignInForm() {
         />
 
         <Button className="w-full" type="submit" disabled={isLoading}>
-          {isLoading ? <Spinner /> : "Submit"}
+          {isLoading ? "Signing In..." : "Submit"}
         </Button>
 
         <div className="text-center text-sm">
           Don't have an account?{" "}
-          <MainLink
+          <Link
             href="/sign-up"
             className="text-primary hover:text-primary/80 font-medium underline"
-            title="signup"
-          />
+          >
+            Sign-ip
+          </Link>
         </div>
       </form>
     </Form>

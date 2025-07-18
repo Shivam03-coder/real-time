@@ -168,3 +168,7 @@
     @apply bg-background text-foreground;
   }
 }
+
+@utility center {
+  @apply flex items-center justify-center min-h-screen w-full;
+}
