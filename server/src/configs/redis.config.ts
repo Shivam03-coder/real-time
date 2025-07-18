@@ -97,6 +97,23 @@ class RedisService {
   public async hgetall(key: string): Promise<Record<string, string>> {
     return this.client.hgetall(key);
   }
+
+  public async lpush(key: string, value: string): Promise<number> {
+    return this.client.lpush(key, value);
+  }
+
+  public async lrange(key: string, start: number, end: number): Promise<string[]> {
+    return this.client.lrange(key, start, end);
+  }
+
+  // zcount
+  public async zcount(key: string, min: number, max: number): Promise<number> {
+    return this.client.zcount(key, min, max);
+  }
+
+  public async exists(key: string): Promise<number> {
+    return this.client.exists(key);
+  }
 }
 
 const redis = new RedisService();
