@@ -8,18 +8,18 @@ datasource db {
 }
 
 model User {
-  id         String         @id @default(cuid())
-  name       String?
-  email      String?        @unique
-  password   String
-  isActive   Boolean        @default(true)
-  createdAt  DateTime       @default(now())
-  updatedAt  DateTime       @updatedAt
-  dashboards Dashboard[]
-  events     Event[]        @relation("UserEvents")
+  id            String         @id @default(cuid())
+  name          String?
+  email         String?        @unique
+  password      String
+  isActive      Boolean        @default(true)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  dashboards    Dashboard[]
+  events        Event[]        @relation("UserEvents")
   notifications Notification[]
-  presence   Presence?
-  
+  presence      Presence?
+
   @@map("users")
 }
 
@@ -29,24 +29,23 @@ model Dashboard {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
-  widgets   Json?    @default("[]") 
-  
+  widgets   Json?    @default("[]")
+
   @@map("dashboards")
 }
 
 model Event {
-  id        String   @id @default(uuid())
-  type      String
+  id        String    @id @default(uuid())
+  type      EventType
   page      String
   sessionId String
-  timestamp DateTime @default(now())
+  timestamp DateTime  @default(now())
   country   String?
   device    String?
   referrer  String?
-  metadata  Json?    @default("{}")
   userId    String?
-  user      User?    @relation(fields: [userId], references: [id], name: "UserEvents")
-  
+  user      User?     @relation(fields: [userId], references: [id], name: "UserEvents")
+
   @@index([sessionId])
   @@index([userId])
   @@index([timestamp])
@@ -58,11 +57,11 @@ model Notification {
   userId    String
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   message   String
-  type      String   @default("info") 
+  type      String   @default("info")
   data      Json?
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
-  
+
   @@index([userId])
   @@index([read])
   @@map("notifications")
@@ -75,7 +74,13 @@ model Presence {
   socketId String
   status   String   @default("online")
   lastSeen DateTime @default(now())
-  
+
   @@index([status])
   @@map("presence")
+}
+
+enum EventType {
+  page_view
+  click
+  session_end
 }

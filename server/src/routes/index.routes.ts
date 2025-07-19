@@ -6,12 +6,12 @@ export default [
     path: "auth",
     router: authRouter,
   },
-  // {
-  //   path: "analytics",
-  //   router: analyticsRouter,
-  // },
-  // {
-  //   path: "event",
-  //   router: eventRouter,
-  // },
+  {
+    path: "analytics",
+    router: analyticsRouter,
+  },
+  {
+    path: "event",
+    router: eventRouter,
+  },
 ];

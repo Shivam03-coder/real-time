@@ -11,9 +11,7 @@ import { cn } from "@/lib/utils";
 export function ConnectionStatus() {
   const { socketIds, updatedAt } = useAppSelector((state) => state.dashboard);
   const { connectionStatus, errorMessage, reconnect } = useSocketContext();
-
   const connectedDashboards = socketIds?.length ?? 0;
-  const lastUpdated = updatedAt ? new Date(updatedAt) : new Date();
 
   const statusConfig = {
     Connected: {
@@ -89,7 +87,7 @@ export function ConnectionStatus() {
               {currentStatus.description}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Last update: {lastUpdated.toLocaleTimeString()}
+              Last update: {updatedAt ? new Date(updatedAt).toLocaleTimeString() : "N/A"}
             </p>
           </div>
           

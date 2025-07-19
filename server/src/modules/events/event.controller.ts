@@ -7,26 +7,25 @@ import SocketServices from "@src/services/socket.service";
 export class EventController {
   public static createEvent = AsyncHandler(
     async (req: Request, res: Response) => {
-      const event = req.body;
+      const { type, page, sessionId, country, device, referrer } = req.body;
       const { userId } = await getAuth(req);
-      const metadata = req.headers["x-metadata"];
-      const metadataObj = JSON.parse(metadata as string);
 
-      if (!event.type || !event.page || !event.sessionId) {
+      console.log(req.body)
+
+      if (!type || !page || !sessionId) {
         throw new ValidationError("Missing required fields");
       }
 
       const createdEvent = await db.event.create({
         data: {
-          type: event.type,
-          page: event.page,
-          sessionId: event.sessionId,
-          timestamp: event.timestamp ? new Date(event.timestamp) : new Date(),
-          country: event.country,
-          device: metadataObj.device,
-          referrer: metadataObj.referrer,
-          metadata: metadataObj || {},
-          userId: userId,
+          type: type,
+          page: page,
+          timestamp: new Date(),
+          country: country,
+          device: device,
+          referrer: referrer,
+          sessionId,
+          userId,
         },
       });
 
