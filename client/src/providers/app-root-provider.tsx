@@ -5,6 +5,7 @@ import StoreProvider from "@/store";
 import { ViewTransitions } from "next-view-transitions";
 import SocketProvider from "./socket-provider";
 import { useSessionEventTracker } from "@/hooks/use-event-tracker";
+import Navbar from "@/app/navbar";
 
 const AppRootProvider = ({ children }: { children: React.ReactNode }) => {
   return (
@@ -23,7 +24,12 @@ const InnerAppContent = ({ children }: { children: React.ReactNode }) => {
   return (
     <SocketProvider>
       <Toaster />
-      <div className="flex min-h-screen w-full flex-col">{children}</div>
+
+      <div className="flex min-h-screen w-full flex-col">
+        {" "}
+        <Navbar />
+        {children}
+      </div>
     </SocketProvider>
   );
 };

@@ -49,14 +49,6 @@ class SocketServices {
       this.connectedSockets.add(socket.id);
       this.emitDashboardUsersUpdated();
 
-      socket.on("request_detailed_stats", (filter: any) => {
-        this.handleDetailedStatsRequest(socket, filter);
-      });
-
-      socket.on("track_dashboard_action", (data: any) => {
-        this.trackDashboardAction(data);
-      });
-
       socket.on("disconnect", () => {
         console.log(`📊 Dashboard disconnected: ${socket.id}`);
         this.connectedSockets.delete(socket.id);
@@ -100,39 +92,13 @@ class SocketServices {
     });
   }
 
-  private static async handleDetailedStatsRequest(
-    socket: Socket,
-    filter: any
-  ): Promise<void> {
-    try {
-      let whereClause: any = {};
-      if (filter.country) whereClause.country = filter.country;
-      if (filter.page) whereClause.page = filter.page;
+  // FOR PROCESS UPDATE
 
-      const events = await db.event.findMany({
-        where: whereClause,
-        orderBy: { timestamp: "desc" },
-        take: 100,
-      });
-
-      socket.emit("detailed_stats_response", events);
-    } catch (error) {
-      console.error("Error handling detailed stats request:", error);
-    }
-  }
-
-  private static trackDashboardAction(data: any): void {
-    console.log("Dashboard action tracked:", data);
-  }
-
-  public static async processVisitorEvent(
-    event: Event,
-    userId?: string
-  ): Promise<void> {
+  public static async processVisitorEvent(event: Event): Promise<void> {
     try {
       const pipeline = redis.pipeline();
 
-      if (event.type === "pageview") {
+      if (event.type === "page_view") {
         pipeline.sadd("active_sessions", event.sessionId);
         pipeline.hincrby("page_views", event.page, 1);
         pipeline.incr("total_visits_today");
@@ -154,31 +120,53 @@ class SocketServices {
 
       this.emitVisitorUpdate(event, stats);
 
-      if (userId) {
-        this.analyticsNamespace
-          .to(`user:${userId}`)
-          .emit("user_visitor_update", {
-            event,
-            stats,
-          });
-      }
+      this.analyticsNamespace.emit("visitor_update", {
+        type: "visitor_update",
+        data: {
+          event,
+          stats,
+        },
+      });
+
+      const [journey, start] = await Promise.all([
+        redis.lrange(`session:${event.sessionId}:journey`, 0, -1),
+        redis.get(`session:${event.sessionId}:start`),
+      ]);
+
+      const duration = start
+        ? Math.floor((Date.now() - Number(start)) / 1000)
+        : 0;
+
+      this.emitSessionActivity({
+        sessionId: event.sessionId,
+        currentPage: event.page,
+        journey,
+        duration,
+      });
     } catch (error) {
       console.error("Error processing visitor event:", error);
     }
   }
 
-  private static async calculateCurrentStats(): Promise<DashboardStats> {
-    const [totalActive, totalToday, pagesVisited] = await Promise.all([
-      redis.scard("active_sessions"),
-      redis.get("total_visits_today").then((val) => parseInt(val || "0")),
-      redis.hgetall("page_views").then((val) => val || {}),
-    ]);
+  // FOR VISITORS
+  public static async calculateCurrentStats() {
+    const [activeSessionCount, totalVisitsToday, pageViews] = await Promise.all(
+      [
+        redis.scard("active_sessions"),
+        redis.get("total_visits_today"),
+        redis.hgetall("page_views"),
+      ]
+    );
 
     return {
-      totalActive,
-      totalToday,
-      pagesVisited: Object.fromEntries(
-        Object.entries(pagesVisited).map(([k, v]) => [k, parseInt(v)])
+      totalActive: activeSessionCount,
+      totalToday: Number(totalVisitsToday || 0),
+      pagesVisited: Object.entries(pageViews || {}).reduce(
+        (acc, [page, count]) => {
+          acc[page] = Number(count);
+          return acc;
+        },
+        {} as Record<string, number>
       ),
     };
   }

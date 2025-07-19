@@ -9,45 +9,44 @@ import { useSocketContext } from "@/providers/socket-provider";
 import { cn } from "@/lib/utils";
 
 export function ConnectionStatus() {
-  const { socketIds, updatedAt } = useAppSelector((state) => state.dashboard);
+  const { totalDashboards, connectedAt } = useAppSelector((state) => state.dashboard);
   const { connectionStatus, errorMessage, reconnect } = useSocketContext();
-  const connectedDashboards = socketIds?.length ?? 0;
 
   const statusConfig = {
     Connected: {
       icon: <Wifi className="h-5 w-5 text-green-500" />,
-      color: "bg-green-500",
       description: "Connection stable",
       textColor: "text-green-500",
       bgColor: "bg-green-500/10",
+      dotColor: "bg-green-500",
     },
     Reconnecting: {
       icon: <RotateCcw className="h-5 w-5 animate-spin text-yellow-500" />,
-      color: "bg-yellow-500",
       description: "Attempting to reconnect...",
       textColor: "text-yellow-500",
       bgColor: "bg-yellow-500/10",
+      dotColor: "bg-yellow-500",
     },
     Disconnected: {
       icon: <WifiOff className="h-5 w-5 text-red-500" />,
-      color: "bg-red-500",
       description: errorMessage || "Connection lost",
       textColor: "text-red-500",
       bgColor: "bg-red-500/10",
+      dotColor: "bg-red-500",
     },
     Error: {
       icon: <AlertCircle className="h-5 w-5 text-orange-500" />,
-      color: "bg-orange-500",
       description: errorMessage || "Connection error",
       textColor: "text-orange-500",
       bgColor: "bg-orange-500/10",
+      dotColor: "bg-orange-500",
     },
     default: {
       icon: <WifiOff className="h-5 w-5 text-gray-500" />,
-      color: "bg-gray-500",
       description: "Connection status unknown",
       textColor: "text-gray-500",
       bgColor: "bg-gray-500/10",
+      dotColor: "bg-gray-500",
     },
   };
 
@@ -55,9 +54,9 @@ export function ConnectionStatus() {
 
   return (
     <Card className={cn("relative border-0 text-xl shadow-sm", currentStatus.bgColor)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+      <CardHeader className="flex items-center justify-between pb-2">
         <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <span>Real-Time Connection</span>
+          Real-Time Connection
           <span className={cn("text-xs font-normal", currentStatus.textColor)}>
             {connectionStatus.toLowerCase()}
           </span>
@@ -73,10 +72,8 @@ export function ConnectionStatus() {
               </TooltipContent>
             </Tooltip>
           )}
-          <div className="flex items-center gap-1">
-            {currentStatus.icon}
-            <div className={`h-2 w-2 rounded-full ${currentStatus.color}`} />
-          </div>
+          {currentStatus.icon}
+          <div className={`h-2 w-2 rounded-full ${currentStatus.dotColor}`} />
         </div>
       </CardHeader>
 
@@ -87,13 +84,12 @@ export function ConnectionStatus() {
               {currentStatus.description}
             </p>
             <p className="text-xs text-muted-foreground mt-1">
-              Last update: {updatedAt ? new Date(updatedAt).toLocaleTimeString() : "N/A"}
+              Last connected: {connectedAt ? new Date(connectedAt).toLocaleTimeString() : "N/A"}
             </p>
           </div>
-          
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={reconnect}
             className="text-muted-foreground hover:text-primary"
           >
@@ -104,26 +100,11 @@ export function ConnectionStatus() {
 
         <div className="flex items-center justify-between pt-2 border-t">
           <div className="flex items-center gap-2">
-            <span className="text-sm font-medium">
-              {connectedDashboards}
-            </span>
+            <span className="text-sm font-medium">{totalDashboards}</span>
             <span className="text-xs text-muted-foreground">
-              active {connectedDashboards === 1 ? "dashboard" : "dashboards"}
+              active {totalDashboards === 1 ? "dashboard" : "dashboards"}
             </span>
           </div>
-
-          {socketIds?.[0] && (
-            <Tooltip>
-              <TooltipTrigger>
-                <span className="text-xs text-muted-foreground truncate max-w-[120px]">
-                  ID: {socketIds[0].slice(0, 8)}...
-                </span>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Socket ID: {socketIds[0]}</p>
-              </TooltipContent>
-            </Tooltip>
-          )}
         </div>
       </CardContent>
     </Card>

@@ -1,3 +1,5 @@
+import type { ApiResponse } from "./api";
+
 export type EventDataApi = {
   type: "page_view" | "click" | "session_end";
   page: string;
@@ -6,3 +8,10 @@ export type EventDataApi = {
   device: string;
   referrer: string;
 };
+
+interface VisitorChartData extends ApiResponse {
+  result: {
+    minute: Date;
+    count: number;
+  }[];
+}

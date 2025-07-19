@@ -1,36 +1,11 @@
 "use client";
+import { useGetlast10minStatsQuery } from "@/apis/event-api";
+import React from "react";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import type { ChartData } from "@/types/analytics";
+const VisitorsChart = () => {
+  const { data } = useGetlast10minStatsQuery();
+  console.log("🚀 ~ VisitorsChart ~ data:", data);
+  return <div className="col-span-2"></div>;
+};
 
-interface VisitorChartProps {
-  data: ChartData[];
-}
-
-export function VisitorChart({ data }: VisitorChartProps) {
-  return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="text-lg">Visitors (Last 10 Minutes)</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={200}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="time" />
-            <YAxis />
-            <Tooltip />
-            <Line 
-              type="monotone" 
-              dataKey="visitors" 
-              stroke="#3b82f6" 
-              strokeWidth={2}
-              dot={{ fill: '#3b82f6' }}
-            />
-          </LineChart>
-        </ResponsiveContainer>
-      </CardContent>
-    </Card>
-  );
-}
+export default VisitorsChart;

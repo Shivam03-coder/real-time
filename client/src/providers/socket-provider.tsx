@@ -3,17 +3,13 @@
 import { useAppToasts } from "@/hooks/use-app-toast";
 import { useAppDispatch } from "@/store";
 import { setDashboardStatus } from "@/store/app-state/dashboard-slice";
+import { upsertSession } from "@/store/app-state/session-activity-slice";
+import { setStats } from "@/store/app-state/visitor-slice";
 import { createContext, useContext, useEffect, useRef, useState } from "react";
 import io, { Socket } from "socket.io-client";
 
 interface NotificationPayloadType {
   message: string;
-}
-
-interface OnlineDashboardEvent {
-  userId: string;
-  socketId: string;
-  totalOnline: number;
 }
 
 type SocketContextType = {
@@ -67,7 +63,7 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
     socketInstance.on("connect", () => {
       setConnectionStatus("Connected");
 
-      socketInstance.emit("dashboard_connected", {
+      socketInstance.emit("user_connected", {
         socketId: socketInstance.id,
       });
 
@@ -77,15 +73,29 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
       });
     });
 
-    socketInstance.on("dashboard_users_updated", (data) => {
+    // USER CONECTED
+    socketInstance.on("user_connected", ({ data }) => {
       dispatch(setDashboardStatus(data));
-      socketInstance.on("dashboard_users_updated", (data) => {
-        dispatch(setDashboardStatus(data));
-        SuccessToast({
-          title: "👥 New User Connected",
-          description: "A user has joined the dashboard.",
-        });
+      SuccessToast({
+        title: "👥 New User Connected",
+        description: "A user has joined the dashboard.",
       });
+    });
+
+    // VISITOR UPDATED
+
+    socketInstance.on("visitor_update", ({ data }) => {
+      dispatch(
+        setStats({
+          event: data.event,
+          stats: data.stats,
+        }),
+      );
+    });
+
+    // SESSION ACTIVITY
+    socketInstance.on("session_activity", (payload) => {
+      dispatch(upsertSession(payload.data))
     });
 
     socketInstance.on("disconnect", (reason: string) => {
@@ -131,20 +141,6 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
       SuccessToast({
         title: "🔔 New Notification",
         description: payload.message,
-      });
-    });
-
-    socketInstance.on("user_connected", (data: OnlineDashboardEvent) => {
-      WarningToast({
-        title: "🟢 New Dashboard Online",
-        description: `User ${data.userId} joined. Total Online: ${data.totalOnline}`,
-      });
-    });
-
-    socketInstance.on("user_disconnected", (data: OnlineDashboardEvent) => {
-      WarningToast({
-        title: "🔴 Dashboard Offline",
-        description: `User ${data.userId} left. Total Online: ${data.totalOnline}`,
       });
     });
 

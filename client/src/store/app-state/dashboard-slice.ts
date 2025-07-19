@@ -1,15 +1,13 @@
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface DashboardState {
-  connectedDashboards: number;
-  socketIds: string[];
-  updatedAt: string | null;
+  totalDashboards: number;
+  connectedAt: string | null;
 }
 
 const initialState: DashboardState = {
-  connectedDashboards: 0,
-  socketIds: [],
-  updatedAt: null,
+  totalDashboards: 0,
+  connectedAt: "",
 };
 
 export const dashboardSlice = createSlice({
@@ -19,14 +17,12 @@ export const dashboardSlice = createSlice({
     setDashboardStatus: (
       state,
       action: PayloadAction<{
-        socketIds: string[];
-        totalConnected: number;
-        updatedAt: string;
+        totalDashboards: number;
+        connectedAt: string;
       }>,
     ) => {
-      state.socketIds = action.payload.socketIds;
-      state.connectedDashboards = action.payload.totalConnected;
-      state.updatedAt = action.payload.updatedAt;
+      state.totalDashboards = action.payload.totalDashboards;
+      state.connectedAt = action.payload.connectedAt;
     },
   },
 });
