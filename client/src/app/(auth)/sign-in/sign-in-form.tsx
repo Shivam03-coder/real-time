@@ -34,6 +34,7 @@ export default function SignInForm() {
   async function onSubmit(values: SignInSchemaType) {
     try {
       const { message, result } = await signinUser(values).unwrap();
+      console.log("🚀 ~ onSubmit ~ result:", result)
       setUserValue(JSON.stringify(result));
       SuccessToast({
         title: message,
@@ -41,7 +42,6 @@ export default function SignInForm() {
       form.reset();
       router.push("/");
 
-      console.log("PUSH FAILED");
     } catch (err: any) {
       const errorMessage =
         err?.data?.message || err?.message || "An unexpected error occurred";

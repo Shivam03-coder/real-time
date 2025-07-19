@@ -2,6 +2,7 @@ import { Response } from "express";
 import App from "./app";
 import { envs } from "./configs/envs.config";
 import rc from "./configs/redis.config";
+import SocketServices from "./services/socket.service";
 const appInstance = new App();
 const expressApp = appInstance.getAppInstance();
 
@@ -17,6 +18,8 @@ const expressApp = appInstance.getAppInstance();
     const server = expressApp.listen(port, () => {
       console.log(`✅ Server started at http://localhost:${port}`);
     });
+
+    SocketServices.init(server)
 
     const gracefulShutdown = async (signal: string) => {
       console.log(`⚠️  Received ${signal}. Shutting down gracefully...`);
