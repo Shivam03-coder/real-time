@@ -4,7 +4,6 @@ import { requireAuth as requireAuthMiddleware } from "@src/middleware/auth.middl
 
 const analyticsRouter = Router();
 
-analyticsRouter.get("/summary", requireAuthMiddleware, AnalyticsController.getSummary);
-analyticsRouter.get("/sessions", requireAuthMiddleware, AnalyticsController.getSessions);
+analyticsRouter.get("/summary", requireAuthMiddleware, AnalyticsController.getAllAnalyticsData);
 
 export default analyticsRouter ;

@@ -170,6 +170,28 @@ class SocketServices {
       ),
     };
   }
+
+  public static getFilters(): Promise<{ country: string; page: string }> {
+    return new Promise((resolve, reject) => {
+      try {
+        this.analyticsNamespace.once(
+          "request_detailed_stats",
+          (payload, callback) => {
+            const { country, page } = payload.filter;
+
+            // Send response back to frontend (optional)
+            if (callback) {
+              callback({ success: true, message: "Filter received" });
+            }
+
+            resolve({ country, page });
+          }
+        );
+      } catch (error) {
+        reject(error);
+      }
+    });
+  }
 }
 
 export default SocketServices;

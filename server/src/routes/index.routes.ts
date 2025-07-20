@@ -11,4 +11,8 @@ export default [
     path: "event",
     router: eventRouter,
   },
+  {
+    path: "analytic",
+    router: analyticsRouter,
+  },
 ];

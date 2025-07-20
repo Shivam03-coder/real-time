@@ -1,3 +1,4 @@
+import type { extend } from "node_modules/zod/v4/core/util.d.cts";
 import type { ApiResponse } from "./api";
 
 export type EventDataApi = {
@@ -13,5 +14,15 @@ interface VisitorChartData extends ApiResponse {
   result: {
     minute: Date;
     count: number;
+  }[];
+}
+
+interface EventSummary extends ApiResponse {
+  result: {
+    country: string;
+    sessionId: string;
+    device: string;
+    type: string;
+    page: string;
   }[];
 }

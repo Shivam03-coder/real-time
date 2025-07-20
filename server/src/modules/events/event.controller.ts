@@ -60,7 +60,7 @@ export class EventController {
       const dataMap = new Map(
         rawData.map((entry) => [
           format(entry.minute, "HH:mm"),
-          Number(entry.uniqueVisitors), // ✅ Convert BigInt to Number
+          Number(entry.uniqueVisitors),
         ])
       );
 
@@ -71,8 +71,38 @@ export class EventController {
           minute: key,
           count: dataMap.get(key) || 0,
         });
-        current = addMinutes(current, 1); // ✅ Keep as Date
+        current = addMinutes(current, 1);
       }
+
+      const lastMinuteCount = result[result.length - 1]?.count ?? 0;
+      const previousCounts = result.slice(0, -1).map((r) => r.count);
+      const avgOfPrevious = previousCounts.length
+        ? previousCounts.reduce((a, b) => a + b, 0) / previousCounts.length
+        : 0;
+
+      let level: "milestone" | "info" | "warning" = "info";
+      let message = "Normal traffic";
+
+      if (avgOfPrevious === 0 && lastMinuteCount > 0) {
+        level = "milestone";
+        message = "First visitor(s) detected!";
+      } else if (lastMinuteCount >= avgOfPrevious * 2) {
+        level = "milestone";
+        message = "Traffic spike detected!";
+      } else if (lastMinuteCount < avgOfPrevious * 0.5) {
+        level = "warning";
+        message = "Visitor count dropped";
+      }
+
+      // Emit WebSocket alert
+      SocketServices.emitAlert({
+        level,
+        message,
+        details: {
+          visitorsLastMinute: lastMinuteCount,
+          averagePrevious: Math.round(avgOfPrevious),
+        },
+      });
 
       res.status(200).json(new ApiResponse("Success", result));
     }

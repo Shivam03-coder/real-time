@@ -11,7 +11,7 @@ const EventServices = ApiServices.injectEndpoints({
         body: eventData,
       }),
     }),
-    getlast10minStats: build.query<VisitorChartData, void>({
+    getlast10minStats: build.query<VisitorChartData, null>({
       query: (eventData) => ({
         url: "/event/last10minStats",
         method: "GET",

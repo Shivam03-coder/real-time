@@ -1,7 +1,9 @@
 "use client";
 
+import { useAlertToast } from "@/hooks/use-alert-toast";
 import { useAppToasts } from "@/hooks/use-app-toast";
-import { useAppDispatch } from "@/store";
+import { useAppDispatch, useAppSelector } from "@/store";
+import { setAlert } from "@/store/app-state/alert-slice";
 import { setDashboardStatus } from "@/store/app-state/dashboard-slice";
 import { upsertSession } from "@/store/app-state/session-activity-slice";
 import { setStats } from "@/store/app-state/visitor-slice";
@@ -36,11 +38,12 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
   const [connectionStatus, setConnectionStatus] = useState<
     "Connected" | "Reconnecting" | "Disconnected" | "Error"
   >("Disconnected");
+  const { country, page } = useAppSelector((state) => state.filter);
   const [errorMessage, setErrorMessage] = useState<string>("");
   const socketRef = useRef<Socket | null>(null);
   const { SuccessToast, ErrorToast, WarningToast } = useAppToasts();
   const dispatch = useAppDispatch();
-
+  const showAlertToast = useAlertToast();
   const handleReconnect = () => {
     if (socketRef.current) {
       setConnectionStatus("Reconnecting");
@@ -95,7 +98,23 @@ const SocketProvider = ({ children }: SocketProviderProps) => {
 
     // SESSION ACTIVITY
     socketInstance.on("session_activity", (payload) => {
-      dispatch(upsertSession(payload.data))
+      dispatch(upsertSession(payload.data));
+    });
+
+    // request_detailed_stats
+    socketInstance.emit("request_detailed_stats", {
+      type: "request_detailed_stats",
+      filter: {
+        country,
+        page,
+      },
+    });
+
+    // alert
+
+    socketInstance.on("alert", (payload) => {
+      const { level, message, details } = payload.data;
+      showAlertToast({ level, message, details });
     });
 
     socketInstance.on("disconnect", (reason: string) => {
