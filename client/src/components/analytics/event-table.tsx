@@ -1,6 +1,7 @@
 "use client";
+
 import { useGetSummaryQuery } from "@/apis/analytic-api";
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Table,
   TableBody,
@@ -28,31 +29,50 @@ interface EventData {
 }
 
 const EventTable = () => {
-  const { data } = useGetSummaryQuery(null);
+  const { data, isLoading } = useGetSummaryQuery(null);
+  const dispatch = useAppDispatch();
+
   const [countryFilter, setCountryFilter] = useState<string>("all");
   const [pageFilter, setPageFilter] = useState<string>("all");
   const [typeFilter, setTypeFilter] = useState<string>("all");
 
-  const dispatch = useAppDispatch();
+  const events: EventData[] = data?.result || [];
 
-  if (!data || !data.result) {
-    return <div>Loading...</div>;
-  }
+  const countries = useMemo(
+    () => Array.from(new Set(events.map((event) => event.country))),
+    [events]
+  );
 
-  const events: EventData[] = data.result;
+  const pages = useMemo(
+    () => Array.from(new Set(events.map((event) => event.page))),
+    [events]
+  );
 
-  const countries = Array.from(new Set(events.map((event) => event.country)));
-  const pages = Array.from(new Set(events.map((event) => event.page)));
-  const types = Array.from(new Set(events.map((event) => event.type)));
+  const types = useMemo(
+    () => Array.from(new Set(events.map((event) => event.type))),
+    [events]
+  );
+
+  const filteredEvents = useMemo(() => {
+    return events.filter((event) => {
+      return (
+        (countryFilter === "all" || event.country === countryFilter) &&
+        (pageFilter === "all" || event.page === pageFilter) &&
+        (typeFilter === "all" || event.type === typeFilter)
+      );
+    });
+  }, [events, countryFilter, pageFilter, typeFilter]);
 
   useEffect(() => {
     dispatch(
       setFilter({
         country: countryFilter,
         page: pageFilter,
-      }),
+      })
     );
-  }, [countryFilter, pageFilter, typeFilter, dispatch]);
+  }, [countryFilter, pageFilter, dispatch]);
+
+  if (isLoading) return <div>Loading...</div>;
 
   return (
     <div className="space-y-4 p-4">
@@ -101,10 +121,7 @@ const EventTable = () => {
       </div>
 
       <div className="rounded-md border">
-        <div
-          className="relative w-full overflow-auto"
-          style={{ maxHeight: "70vh" }}
-        >
+        <div className="relative w-full overflow-auto" style={{ maxHeight: "70vh" }}>
           <Table>
             <TableHeader className="bg-background sticky top-0">
               <TableRow>
@@ -116,7 +133,7 @@ const EventTable = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {events.map((event, index) => (
+              {filteredEvents.map((event, index) => (
                 <TableRow key={`${event.sessionId}-${index}`}>
                   <TableCell className="font-medium">{event.country}</TableCell>
                   <TableCell className="text-muted-foreground">
@@ -143,7 +160,7 @@ const EventTable = () => {
       </div>
 
       <div className="text-muted-foreground text-sm">
-        Showing {events.length} events
+        Showing {filteredEvents.length} events
       </div>
     </div>
   );
